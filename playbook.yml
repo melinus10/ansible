@@ -1,0 +1,53 @@
+--- 
+- name : Init 
+  hosts : webservers
+  become : yes 
+  tasks : 
+    - name : run apt-get update
+      ansible.builtin.apt : 
+        update_cache : yes
+
+    - name : install nginx
+      apt :  
+        name : [nginx, ufw, rsync] 
+        state : present
+        update_cache : yes
+    
+    - name: Configuration SSH (Futur port {{ server_port }})
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      loop:
+        - { regexp: '^#?Port', line: " Port 2222 " }
+        - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin no' }
+        - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
+      notify: Restart SSH # réload le service SSH pour appliquer les changements 
+
+  handlers:
+    - name: Restart SSH
+      service:
+        name: ssh
+        state: restarted
+
+    - name: Configuration de UFW (Pare-feu)
+      ufw:
+        rule: "{{ item.rule }}"
+        port: "{{ item.port }}"
+        proto: tcp
+      loop:
+        - { rule: 'allow', port: "2222" }
+        - { rule: 'allow', port: '80' }
+
+    - name: Activation de UFW
+      ufw:
+        state: enabled
+        policy: deny
+
+    - name : Codroit d'écriture pour le dossier /var/www/html
+      file:    
+        path: /var/www/html
+        owner: user
+        groupe: www-data
+        state: directory
+        mode: '0755'
