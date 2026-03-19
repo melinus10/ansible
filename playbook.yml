@@ -20,7 +20,7 @@
         regexp: "{{ item.regexp }}"
         line: "{{ item.line }}"
       loop:
-        - { regexp: '^#?Port', line: "Port 22" }
+        - { regexp: '^#?Port', line: "Port 2222" }
         - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin no' }
         - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
       notify: Restart SSH # réload le service SSH pour appliquer les changements 
@@ -37,7 +37,7 @@
         port: "{{ item.port }}"
         proto: tcp
       loop:
-        - { rule: 'allow', port: "22" }
+        - { rule: 'allow', port: "2222" }
         - { rule: 'allow', port: '80' }
 
     - name: Activation de UFW
